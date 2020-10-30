@@ -3,14 +3,6 @@ import { validateCPF } from '../common/validators'
 import * as bcrypt from 'bcrypt'
 import { environment } from '../common/environment'
 
-export interface User extends mongoose.Document {
-  name: String
-  email: String
-  password: String
-  gender: String
-  cpf: String
-}
-
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -44,6 +36,14 @@ const userSchema = new mongoose.Schema({
   },
 })
 
+export interface UserDocument extends mongoose.Document {
+  name: String
+  email: String
+  password: String
+  gender: String
+  cpf: String
+}
+
 const hashPassword = (obj, next) => {
   bcrypt
     .hash(obj.password, environment.security.saltRounds)
@@ -75,4 +75,4 @@ userSchema.pre('save', saveMiddleware)
 userSchema.pre('findAndModify', updateMiddleware)
 userSchema.pre('update', updateMiddleware)
 
-export const User = mongoose.model('User', userSchema)
+export const User = mongoose.model<UserDocument>('User', userSchema)
