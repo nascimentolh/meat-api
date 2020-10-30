@@ -44,19 +44,35 @@ const userSchema = new mongoose.Schema({
   },
 })
 
-// Document middlewares
-userSchema.pre<User>('save', function (next) {
+const hashPassword = (obj, next) => {
+  bcrypt
+    .hash(obj.password, environment.security.saltRounds)
+    .then((hash) => {
+      obj.password = hash
+      next()
+    })
+    .catch(next)
+}
+
+const saveMiddleware = function (next) {
   if (!this.isModified('password')) {
     next()
   } else {
-    bcrypt
-      .hash(this.password, environment.security.saltRounds)
-      .then((hash) => {
-        this.password = hash
-        next()
-      })
-      .catch(next)
+    hashPassword(this, next)
   }
-})
+}
+
+const updateMiddleware = function (next) {
+  if (!this.getUpdate().password) {
+    next()
+  } else {
+    hashPassword(this.getUpdate(), next)
+  }
+}
+
+// Document middlewares
+userSchema.pre('save', saveMiddleware)
+userSchema.pre('findAndModify', updateMiddleware)
+userSchema.pre('update', updateMiddleware)
 
 export const User = mongoose.model('User', userSchema)
