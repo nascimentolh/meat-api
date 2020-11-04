@@ -8,6 +8,15 @@ class ReviewsRouter extends ModelRouter<ReviewDocument> {
     super(Review)
   }
 
+  envelope(document) {
+    let resource = super.envelope(document)
+    const restId = document.restaurant._id
+      ? document.restaurant._id
+      : document.restaurant
+    resource._links.restaurant = `/restaurants/${restId}`
+    return resource
+  }
+
   protected prepareOne(
     query: mongoose.DocumentQuery<ReviewDocument, ReviewDocument>
   ): mongoose.DocumentQuery<ReviewDocument, ReviewDocument> {
@@ -15,11 +24,11 @@ class ReviewsRouter extends ModelRouter<ReviewDocument> {
   }
 
   applyRoutes(application: restify.Server) {
-    application.get('/reviews', this.findAll)
+    application.get(`${this.basePath}`, this.findAll)
 
-    application.get('/reviews/:id', [this.validateId, this.findById])
+    application.get(`${this.basePath}/:id`, [this.validateId, this.findById])
 
-    application.post('/reviews', this.save)
+    application.post(`${this.basePath}`, this.save)
   }
 }
 
